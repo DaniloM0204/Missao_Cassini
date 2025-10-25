@@ -39,8 +39,8 @@ with open("Cassini_Vetor.csv", "r") as f:
             for i in range (6):
                 vetor = float(line.split(";")[i].strip().replace(",","."))
                 vetores.append(vetor)
-            rvec = np.array(vetores[0:3])
-            vvec = np.array(vetores[3:6])
+        rvec = np.array(vetores[0:3])
+        vvec = np.array(vetores[3:6])
 
 # Objetos Auxiliares
 class Orbita:
