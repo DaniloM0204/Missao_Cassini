@@ -19,32 +19,20 @@ R_Orb_planetas = {
     "Jupiter": 5.204
 }
 
-
-Vetores_Cassini = {}
-
-with open("Cassini_Vetor.csv", "r") as f:
-    for line in f:
-        if line.startswith("Vetor_"):
-            split_line = line.strip().split(";")
-            secao = split_line[0].replace("Vetor_", "").strip()
-            encontroucabecalho = False
-
-        elif line.startswith("X"):
-            cabecalho = split_line[0].replace("X", "").strip()
-            encontroucabecalho = True
-
-        elif encontroucabecalho:
-            valores = float(split_line[1].replace(",",".").strip())
-            vetores = []
-            for i in range (6):
-                vetor = float(line.split(";")[i].strip().replace(",","."))
-                vetores.append(vetor)
-        rvec = np.array(vetores[0:3])
-        vvec = np.array(vetores[3:6])
-
 # Objetos Auxiliares
 class Orbita:
+    def __init__(self):
+        self.secao_nome = ""
+        self.a = 0
+        self.e = 0
+        self.p = 0
+        self.rvec = np.zeros(3)
+        self.vvec = np.zeros(3)
+
     def vet_estado(self, μ_Sol, rvec, vvec):
+        self.rvec = rvec
+        self.vvec = vvec
+
         # Magnitude Posição e Velocidade
         r = np.linalg.norm(rvec)
         v = np.linalg.norm(vvec)
@@ -76,6 +64,69 @@ class Orbita:
         vypq = np.sqrt((μ / self.p)) * (self.e + np.cos(f))
         return vxpq, vypq
 
+
+Vetores_Cassini = {}
+encontroucabecalho = False
+secao = None
+try:
+    with open("Cassini_Vetor.csv", "r") as f:
+
+        for line in f:
+            line_branco = line.strip()
+
+            if not line_branco or line_branco.startswith(";") or line_branco.startswith(" "):
+                continue
+            # Separa os dados
+            if line.startswith("Vetor_"):
+                split_line = line.strip().split(";")
+                secao = split_line[0].strip()
+                encontroucabecalho = False
+
+            elif line.startswith("X"):
+                encontroucabecalho = True
+
+            # Organiza vetores posição e velocidade
+
+            elif encontroucabecalho and secao:
+                vetores = []
+
+                try:
+                    for i in range (6):
+                        vetor = float(line.split(";")[i].strip().replace(",","."))
+                        vetores.append(vetor)
+                    rvec = np.array(vetores[0:3])
+                    vvec = np.array(vetores[3:6])
+
+                    nova_orbita = Orbita()
+                    nova_orbita.secao_nome = secao
+                    nova_orbita.vet_estado(μ_Sol, rvec, vvec)
+                    Vetores_Cassini[secao] = nova_orbita
+
+
+                    encontroucabecalho = False
+                except Exception as e:
+                    print(f"Erro ao processar a linha: {line}. Erro: {e}")
+                    encontroucabecalho = False
+except FileNotFoundError:
+    print("O arquivo não foi encontrado.")
+
+
+# Teste
+try:
+    print(f"  Semi-eixo maior (a): {Vetores_Cassini['Vetor_Terra_Venus'].a:.4f} AU")
+except KeyError:
+    print(" A chave 'Vetor_Terra_Venus' não foi encontrada no dicionário.")
+
+
+with open("Dados_Orbita_Cassini.txt", "w") as f:
+    for secao_nome, orbita_obj in Vetores_Cassini.items():
+        f.write(f"Dados para {secao_nome}:\n")
+        f.write(f"  Semi-eixo maior (a): {orbita_obj.a:.4f} AU\n")
+        f.write(f"  Excentricidade (e): {orbita_obj.e:.4f}\n")
+        f.write(f"  Semilado reto (p): {orbita_obj.p:.4f} AU\n")
+        f.write(f"  Posicao (r): {orbita_obj.rvec} AU\n")
+        f.write(f"  Velocidade (v): {orbita_obj.vvec} AU/dia\n")
+        f.write("\n")
 
 
 
