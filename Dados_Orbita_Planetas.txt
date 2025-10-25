@@ -1,0 +1,21 @@
+Dados para Vetores_Terra:
+  Semi-eixo maior (a): 1.0001 AU
+  Excentricidade (e): 0.0167
+  Semilado reto (p): 0.9998 AU
+  Posicao (r): [9.20e-01 3.85e-01 5.06e-06] AU
+  Velocidade (v): [-6.92e-03  1.58e-02  7.01e-07] AU/dia
+
+Dados para Vetores_Venus:
+  Semi-eixo maior (a): 0.7260 AU
+  Excentricidade (e): 0.0038
+  Semilado reto (p): 0.7260 AU
+  Posicao (r): [ 0.617  -0.385  -0.0408] AU
+  Velocidade (v): [ 0.0106    0.0171   -0.000378] AU/dia
+
+Dados para Vetores_Jupiter:
+  Semi-eixo maior (a): 5.2017 AU
+  Excentricidade (e): 0.0491
+  Semilado reto (p): 5.1891 AU
+  Posicao (r): [ 4.02   -3.04   -0.0776] AU
+  Velocidade (v): [ 0.00445   0.00638  -0.000126] AU/dia
+
