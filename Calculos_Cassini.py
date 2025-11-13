@@ -5,7 +5,7 @@ import os
 μ_Sol = 0.0002959122 # AU^3/dia^2
 
 eventos_jd = {
-    'Lancamento': 2450737.5,  # Out 1997
+    'Lança_Terra': 2450737.5,  # Out 1997
     'Venus1':     2450929.5,  # Abr 1998
     'Venus2':     2451353.5,  # Jun 1999
     'Terra':      2451408.5,  # Ago 1999
@@ -60,7 +60,6 @@ class Orbita:
         ypq = self.raio_orbita(f) * np.sin(ω + f)
         return xpq, ypq
 
-# --- Leitura de Arquivos Horizons ---
 def ler_horizons_completo(caminho_arquivo):
     """
     Lê JD, X, Y, Z, VX, VY, VZ dos arquivos .txt
@@ -125,8 +124,8 @@ plt.text(10, -0.5, "Nodo γ", fontsize=10, verticalalignment='center', fontweigh
 f_vals = np.linspace(0, 2 * np.pi, 300)
 cor_planeta = {'Venus': 'gray', 'Terra': 'blue', 'Jupiter': 'brown', 'Saturno': 'gold'}
 
-# --- Plotagem dos Planetas (Rotacionados) ---
-if 'dados_planetas' in locals(): # Verificação de segurança
+
+if 'dados_planetas' in locals():
     for nome, dados in dados_planetas.items():
         ponto = dados[0]
         orb = Orbita()
@@ -142,7 +141,7 @@ if 'dados_planetas' in locals(): # Verificação de segurança
         # plt.plot(px_rot, py_rot, 'o', color=cor_planeta.get(nome, 'gray'), markersize=4)
 
 fases = [
-    ('Terra -> Venus 1', eventos_jd['Lancamento'], eventos_jd['Venus1']),
+    ('Terra -> Venus 1', eventos_jd['Lança_Terra'], eventos_jd['Venus1']),
     ('Venus 1 -> Venus 2',    eventos_jd['Venus1'],     eventos_jd['Venus2']),
     ('Venus 2 -> Terra',      eventos_jd['Venus2'],     eventos_jd['Terra']),
     ('Terra -> Jupiter',      eventos_jd['Terra'],      eventos_jd['Jupiter']),
@@ -158,25 +157,24 @@ if dados_cassini:
         indices = np.where((jds >= jd_inicio) & (jds <= jd_fim))[0]
 
         if len(indices) > 0:
-            # Dados reais
+            #Vetores de posição e velocidade
             segmento_r = np.array([dados_cassini[k]['r'] for k in indices])
             segmento_v = np.array([dados_cassini[k]['v'] for k in indices])
 
-            # Dados teóricos (Elipse de transferência)
+            #Elipse de transferência
             idx_mid = indices[len(indices)//4]
             ponto_ref = dados_cassini[idx_mid]
 
             orb_fase = Orbita()
             orb_fase.vet_estado(μ_Sol, ponto_ref['r'], ponto_ref['v'])
 
-            # 1. Calcular e Rotacionar Elipse Teórica
+            #Calcular Elipse
             x_elipse, y_elipse = orb_fase.pos_orb(orb_fase.omega, f_vals)
             x_elipse_rot, y_elipse_rot = rotacionar_90_horario(x_elipse, y_elipse)
 
             plt.plot(x_elipse_rot, y_elipse_rot, ':', color=cor, alpha=0.5, linewidth=1)
 
-            # 2. Rotacionar Caminho Real
-            # segmento_r[:,0] é X, segmento_r[:,1] é Y
+            #Rotacionar Caminho Real
             x_real = segmento_r[:, 0]
             y_real = segmento_r[:, 1]
 
@@ -184,7 +182,6 @@ if dados_cassini:
 
             plt.plot(x_real_rot, y_real_rot, '-', color=cor, linewidth=1.5, label=nome_fase)
 
-            # 3. Marcadores de início (Rotacionados)
             plt.plot(x_real_rot[0], y_real_rot[0], 'o', color=cor, markersize=4)
 
 plt.legend(loc='upper left', fontsize='small', framealpha=0.9, bbox_to_anchor=(1, 1))
