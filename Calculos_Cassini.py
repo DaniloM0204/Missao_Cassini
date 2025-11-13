@@ -1,13 +1,25 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
-μ_Sol = 0.0002959122
+μ_Sol = 0.0002959122 # AU^3/dia^2
 
-μ_planetas = {
-    "Terra": 3.986e-14,
-    "Venus": 3.24859e-14,
-    "Jupiter": 1.26686534e-13
+eventos_jd = {
+    'Lancamento': 2450737.5,  # Out 1997
+    'Venus1':     2450929.5,  # Abr 1998
+    'Venus2':     2451353.5,  # Jun 1999
+    'Terra':      2451408.5,  # Ago 1999
+    'Jupiter':    2451908.5,  # Dez 2000
+    'Saturno':    2453187.5   # Jul 2004
 }
+
+cores_fases = ["blue", 'orange', 'green', 'red', 'purple']
+
+def rotacionar_90_horario(x, y):
+    x_rot = y
+    y_rot = -x
+    return x_rot, y_rot
+
 
 class Orbita:
     def __init__(self):
@@ -48,129 +60,134 @@ class Orbita:
         ypq = self.raio_orbita(f) * np.sin(ω + f)
         return xpq, ypq
 
-    def get_true_anomaly(self, r_target):
-        e_unit = self.e_vec / self.e
-        h_vec = np.cross(self.rvec, self.vvec)
-        h_unit = h_vec / np.linalg.norm(h_vec)
-        q_unit = np.cross(h_unit, e_unit)
+# --- Leitura de Arquivos Horizons ---
+def ler_horizons_completo(caminho_arquivo):
+    """
+    Lê JD, X, Y, Z, VX, VY, VZ dos arquivos .txt
+    """
+    dados = []
+    lendo = False
 
-        x_proj = np.dot(r_target, e_unit)
-        y_proj = np.dot(r_target, q_unit)
+    try:
+        with open(caminho_arquivo, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line == "$$SOE":
+                    lendo = True
+                    continue
+                if line == "$$EOE":
+                    lendo = False
+                    continue
 
-        return np.arctan2(y_proj, x_proj)
+                if lendo:
+                    try:
+                        parts = line.split(',')
+                        # Índices típicos do Horizons (JD, Date, X, Y, Z, VX, VY, VZ)
+                        jd = float(parts[0])
+                        r = np.array([float(parts[2]), float(parts[3]), float(parts[4])])
+                        v = np.array([float(parts[5]), float(parts[6]), float(parts[7])])
+                        dados.append({'jd': jd, 'r': r, 'v': v})
+                    except (ValueError, IndexError):
+                        continue
+    except FileNotFoundError:
+        print(f"Arquivo não encontrado: {caminho_arquivo}")
+        return []
+    return dados
 
-Vetores_Cassini = {}
-Vetores_Planetas = {}
+arquivos_planetas = {
+    'Venus': 'VetoresVenus.txt',
+    'Terra': 'VetoresTerra.txt',
+    'Jupiter': 'VetoresJupiter.txt',
+    'Saturno': 'VetoresSaturno.txt'
+}
+dados_planetas = {}
+for nome, arquivo in arquivos_planetas.items():
+    caminho = os.path.join("Dados", arquivo)
+    dados = ler_horizons_completo(caminho)
+    if dados:
+        dados_planetas[nome] = dados
 
-encontroucabecalho = False
-secao = None
+dados_cassini = ler_horizons_completo(os.path.join("Dados", "VetoresCassini.txt"))
 
-try:
-    with open("Cassini_Vetor.csv", "r") as f:
-        for line in f:
-            line_branco = line.strip()
-            if not line_branco or line_branco.startswith(";") or line_branco.startswith(" "):
-                continue
-            if line.startswith("Vetor_"):
-                split_line = line.strip().split(";")
-                secao = split_line[0].strip()
-                encontroucabecalho = False
-            elif line.startswith("X"):
-                encontroucabecalho = True
-            elif encontroucabecalho and secao:
-                vetores = []
-                try:
-                    for i in range (6):
-                        vetor = float(line.split(";")[i].strip().replace(",","."))
-                        vetores.append(vetor)
-                    rvec = np.array(vetores[0:3])
-                    vvec = np.array(vetores[3:6])
-
-                    nova_orbita = Orbita()
-                    nova_orbita.secao_nome = secao
-                    nova_orbita.vet_estado(μ_Sol, rvec, vvec)
-                    Vetores_Cassini[secao] = nova_orbita
-                    encontroucabecalho = False
-                except Exception:
-                    encontroucabecalho = False
-except FileNotFoundError:
-    print("O arquivo Cassini_Vetor.csv não foi encontrado.")
-
-try:
-    with open("Vetores_Planetas.csv", "r") as f:
-        for line in f:
-            line_branco = line.strip()
-            if not line_branco or line_branco.startswith(";") or line_branco.startswith(" "):
-                continue
-            if line.startswith("Vetores_"):
-                split_line = line.strip().split(";")
-                secao = split_line[0].strip()
-                encontroucabecalho = False
-            elif line.startswith("X"):
-                encontroucabecalho = True
-            elif encontroucabecalho and secao:
-                vetores = []
-                try:
-                    for i in range (6):
-                        vetor = float(line.split(";")[i].strip().replace(",","."))
-                        vetores.append(vetor)
-                    rvec = np.array(vetores[0:3])
-                    vvec = np.array(vetores[3:6])
-
-                    nova_orbita = Orbita()
-                    nova_orbita.secao_nome = secao
-                    nova_orbita.vet_estado(μ_Sol, rvec, vvec)
-                    Vetores_Planetas[secao] = nova_orbita
-                    encontroucabecalho = False
-                except Exception:
-                    encontroucabecalho = False
-except FileNotFoundError:
-    print("O arquivo Vetores_Planetas.csv não foi encontrado.")
-
-plt.figure(figsize=(12, 10))
-plt.title("Trajetória da Missão Cassini: Segmentos Sólidos e Órbitas Tracejadas")
-plt.xlabel("x (AU)")
-plt.ylabel("y (AU)")
+plt.figure(figsize=(12, 12))
+plt.title("Trajetória da Cassini")
+plt.xlabel("Distância [AU]")
+plt.ylabel("Distância [AU]")
+plt.axis('equal')
 plt.grid(True, linestyle='--', alpha=0.3)
 
 plt.plot(0, 0, 'yo', markersize=12, label='Sol')
 
-f_full = np.linspace(0, 2 * np.pi, 400)
-for nome, orbita in Vetores_Planetas.items():
-    x_vals, y_vals = orbita.pos_orb(orbita.omega, f_full)
-    plt.plot(x_vals, y_vals, '--', color='gray', alpha=0.4, linewidth=0.8)
-    plt.plot(orbita.rvec[0], orbita.rvec[1], 'o', markersize=6, label=nome)
+#Nodo Ascendente
+plt.arrow(8, 0, 2, 0, color='black', alpha=0.6, width=0.02, head_width=0.1)
+plt.text(10, -0.5, "Nodo γ", fontsize=10, verticalalignment='center', fontweight='bold')
 
-cores = ['blue', 'green', 'red', 'orange', 'purple', 'cyan', 'magenta']
-chaves_cassini = list(Vetores_Cassini.keys())
+f_vals = np.linspace(0, 2 * np.pi, 300)
+cor_planeta = {'Venus': 'gray', 'Terra': 'blue', 'Jupiter': 'brown', 'Saturno': 'gold'}
 
-for i, nome in enumerate(chaves_cassini):
-    orbita_atual = Vetores_Cassini[nome]
-    cor_atual = cores[i % len(cores)]
+# --- Plotagem dos Planetas (Rotacionados) ---
+if 'dados_planetas' in locals(): # Verificação de segurança
+    for nome, dados in dados_planetas.items():
+        ponto = dados[0]
+        orb = Orbita()
+        orb.vet_estado(μ_Sol, ponto['r'], ponto['v'])
 
-    x_full, y_full = orbita_atual.pos_orb(orbita_atual.omega, f_full)
-    plt.plot(x_full, y_full, ':', color=cor_atual, alpha=0.6, linewidth=1)
+        # Calcula órbita
+        x_elipse, y_elipse = orb.pos_orb(orb.omega, f_vals)
 
-    f_start = orbita_atual.get_true_anomaly(orbita_atual.rvec)
+        x_rot, y_rot = rotacionar_90_horario(x_elipse, y_elipse)
+        # plt.plot(x_rot, y_rot, '--', color=cor_planeta.get(nome, 'gray'), alpha=0.3, linewidth=1)
 
-    if i < len(chaves_cassini) - 1:
-        orbita_proxima = Vetores_Cassini[chaves_cassini[i+1]]
-        f_end = orbita_atual.get_true_anomaly(orbita_proxima.rvec)
+        # px_rot, py_rot = rotacionar_90_horario(ponto['r'][0], ponto['r'][1])
+        # plt.plot(px_rot, py_rot, 'o', color=cor_planeta.get(nome, 'gray'), markersize=4)
 
-        if f_end < f_start:
-            f_end += 2 * np.pi
-    else:
-        f_end = f_start + np.pi
+fases = [
+    ('Terra -> Venus 1', eventos_jd['Lancamento'], eventos_jd['Venus1']),
+    ('Venus 1 -> Venus 2',    eventos_jd['Venus1'],     eventos_jd['Venus2']),
+    ('Venus 2 -> Terra',      eventos_jd['Venus2'],     eventos_jd['Terra']),
+    ('Terra -> Jupiter',      eventos_jd['Terra'],      eventos_jd['Jupiter']),
+    ('Jupiter -> Saturno',    eventos_jd['Jupiter'],    eventos_jd['Saturno'])
+]
 
-    f_segmento = np.linspace(f_start, f_end, 200)
-    x_seg, y_seg = orbita_atual.pos_orb(orbita_atual.omega, f_segmento)
+if dados_cassini:
+    jds = np.array([d['jd'] for d in dados_cassini])
 
-    plt.plot(x_seg, y_seg, '-', color=cor_atual, linewidth=2.5, label=nome)
+    for i, (nome_fase, jd_inicio, jd_fim) in enumerate(fases):
+        cor = cores_fases[i % len(cores_fases)]
 
-    plt.plot(x_seg[0], y_seg[0], 'o', color=cor_atual, markersize=6, markeredgecolor='black')
-    plt.plot(x_seg[-1], y_seg[-1], 's', color=cor_atual, markersize=6, markeredgecolor='black')
+        indices = np.where((jds >= jd_inicio) & (jds <= jd_fim))[0]
 
-plt.axis('equal')
-plt.legend(loc='upper right', fontsize='small', framealpha=0.9)
+        if len(indices) > 0:
+            # Dados reais
+            segmento_r = np.array([dados_cassini[k]['r'] for k in indices])
+            segmento_v = np.array([dados_cassini[k]['v'] for k in indices])
+
+            # Dados teóricos (Elipse de transferência)
+            idx_mid = indices[len(indices)//4]
+            ponto_ref = dados_cassini[idx_mid]
+
+            orb_fase = Orbita()
+            orb_fase.vet_estado(μ_Sol, ponto_ref['r'], ponto_ref['v'])
+
+            # 1. Calcular e Rotacionar Elipse Teórica
+            x_elipse, y_elipse = orb_fase.pos_orb(orb_fase.omega, f_vals)
+            x_elipse_rot, y_elipse_rot = rotacionar_90_horario(x_elipse, y_elipse)
+
+            plt.plot(x_elipse_rot, y_elipse_rot, ':', color=cor, alpha=0.5, linewidth=1)
+
+            # 2. Rotacionar Caminho Real
+            # segmento_r[:,0] é X, segmento_r[:,1] é Y
+            x_real = segmento_r[:, 0]
+            y_real = segmento_r[:, 1]
+
+            x_real_rot, y_real_rot = rotacionar_90_horario(x_real, y_real)
+
+            plt.plot(x_real_rot, y_real_rot, '-', color=cor, linewidth=1.5, label=nome_fase)
+
+            # 3. Marcadores de início (Rotacionados)
+            plt.plot(x_real_rot[0], y_real_rot[0], 'o', color=cor, markersize=4)
+
+plt.legend(loc='upper left', fontsize='small', framealpha=0.9, bbox_to_anchor=(1, 1))
 plt.tight_layout()
+plt.savefig("./Plot_Orbitas/trajetoria_completa_cassini.png", dpi=300)
 plt.show()
