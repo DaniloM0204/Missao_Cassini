@@ -174,7 +174,7 @@ if dados_cassini:
 
             plt.plot(x_elipse_rot, y_elipse_rot, ':', color=cor, alpha=0.5, linewidth=1)
 
-            #Rotacionar Caminho Real
+            # Gráfico na direção do Nodo Ascendente
             x_real = segmento_r[:, 0]
             y_real = segmento_r[:, 1]
 
