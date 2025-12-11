@@ -190,11 +190,11 @@ if 'Saturno' in dados_planetas:
 
     theta_anel = np.linspace(0, 2 * np.pi, 100)
 
-    # Raio visual do anel
+    # Raio do anel
     raio_anel = 0.25
 
     x_anel = xs_real + raio_anel * np.cos(theta_anel)
-    y_anel = ys_real + (raio_anel) * np.sin(theta_anel) # Multiplico por 0.3 para "achatar" (efeito 3D)
+    y_anel = ys_real + (raio_anel) * np.sin(theta_anel)
 
     # Plotar o anel
     plt.plot(x_anel, y_anel, '-', color='peru', alpha=0.8, linewidth=1.5)
