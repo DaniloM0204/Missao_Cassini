@@ -1,0 +1,26 @@
+Resultados dos Flybys:
+
+Flyby em Venus (Venus1):
+  - V_infty: 0.003578 AU/dia
+  - Excentricidade: 1.011323
+  - Deflexao: 162.836147 graus
+  - Ganho V: 12.251421 km/s
+
+Flyby em Venus (Venus2):
+  - V_infty: 0.005464 AU/dia
+  - Excentricidade: 1.057858
+  - Deflexao: 141.925327 graus
+  - Ganho V: 17.887821 km/s
+
+Flyby em Terra (Terra):
+  - V_infty: 0.009317 AU/dia
+  - Excentricidade: 1.039773
+  - Deflexao: 148.202973 graus
+  - Ganho V: 31.031049 km/s
+
+Flyby em Jupiter (Jupiter):
+  - V_infty: 0.006699 AU/dia
+  - Excentricidade: 1.003080
+  - Deflexao: 171.017903 graus
+  - Ganho V: 23.126948 km/s
+
