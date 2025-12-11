@@ -143,7 +143,7 @@ if dados_cassini:
         indices = np.where((jds >= jd_inicio) & (jds <= jd_fim))[0]
 
         if len(indices) > 0:
-            # Dados reais para PLOTAGEM
+            # Dados para plotar
             segmento_r = np.array([dados_cassini[k]['r'] for k in indices])
             x_real, y_real = segmento_r[:, 0], segmento_r[:, 1]
             x_plot, y_plot = rotacionar_90_horario(x_real, y_real)
@@ -162,15 +162,48 @@ if dados_cassini:
             if f_end < f_start:
                 f_end += 2 * np.pi
 
-            # Orbita completa
+            # Plotagem da órbita completa tracejada
             f_full = np.linspace(0, 2 * np.pi, 300)
             x_full, y_full = orb.pos_orb(f_full)
             x_full_rot, y_full_rot = rotacionar_90_horario(x_full, y_full)
             plt.plot(x_full_rot, y_full_rot, ':', color=cor, alpha=0.5, linewidth=1)
 
+# Adiciona a chegada em Saturno
+if 'Saturno' in dados_planetas:
+    jd_chegada = eventos_jd['Saturno']
+    jds_s = np.array([d['jd'] for d in dados_planetas['Saturno']])
+    idx_s = (np.abs(jds_s - jd_chegada)).argmin()
+    pt_saturno = dados_planetas['Saturno'][idx_s]
+
+    orb_sat = Orbita()
+    orb_sat.vet_estado(mu_Sol, pt_saturno['r'], pt_saturno['v'])
+
+
+    f_sat = np.linspace(0, 2 * np.pi, 300)
+    x_sat, y_sat = orb_sat.pos_orb(f_sat)
+    x_s_rot, y_s_rot = rotacionar_90_horario(x_sat, y_sat)
+
+    plt.plot(x_s_rot, y_s_rot, '--', color='brown', alpha=0.6, linewidth=1, label='Órbita Saturno')
+
+    xs_real, ys_real = rotacionar_90_horario(pt_saturno['r'][0], pt_saturno['r'][1])
+    plt.plot(xs_real, ys_real, 'o', color='brown', markersize=5, label='Saturno')
+
+    theta_anel = np.linspace(0, 2 * np.pi, 100)
+
+    # Raio visual do anel
+    raio_anel = 0.25
+
+    x_anel = xs_real + raio_anel * np.cos(theta_anel)
+    y_anel = ys_real + (raio_anel) * np.sin(theta_anel) # Multiplico por 0.3 para "achatar" (efeito 3D)
+
+    # Plotar o anel
+    plt.plot(x_anel, y_anel, '-', color='peru', alpha=0.8, linewidth=1.5)
+
 plt.legend(loc='upper left', fontsize='small', framealpha=0.9, bbox_to_anchor=(1, 1))
 plt.tight_layout()
 plt.savefig("./Outputs/trajetoria_completa_cassini.png", dpi=300)
+plt.xlim(-2,8)
+plt.ylim(-4,6)
 plt.show()
 
 # Calculo Flybys
