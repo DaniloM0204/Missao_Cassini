@@ -201,9 +201,9 @@ if 'Saturno' in dados_planetas:
 
 plt.legend(loc='upper left', fontsize='small', framealpha=0.9, bbox_to_anchor=(1, 1))
 plt.tight_layout()
-plt.savefig("./Outputs/trajetoria_completa_cassini.png", dpi=300)
-plt.xlim(-2,8)
+plt.xlim(-2,10)
 plt.ylim(-4,6)
+plt.savefig("./Outputs/trajetoria_completa_cassini.png", dpi=300)
 plt.show()
 
 # Calculo Flybys
