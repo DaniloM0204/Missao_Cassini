@@ -1,26 +1,58 @@
-Resultados dos Flybys:
+Resultados dos Flybys e seus trechos:
 
-Flyby em Venus (Venus1):
-  - V_infty: 0.003578 AU/dia
-  - Excentricidade: 1.011323
-  - Deflexao: 162.836147 graus
-  - Ganho V: 12.251421 km/s
+Flyby no planeta Venus
+Encontro
+    - V_infinito_aproximacao: 6.20 km/s
+    - Excentricidade: 1.0113
+    - Deflexao ao redor planeta: 162.84 graus
 
-Flyby em Venus (Venus2):
-  - V_infty: 0.005464 AU/dia
-  - Excentricidade: 1.057858
-  - Deflexao: 141.925327 graus
-  - Ganho V: 17.887821 km/s
+Velocidade Heliocentrica
+    - Velocidade Pre : 38.61 km/s
+    - Velocidade Pos:   40.48 km/s
+    - Variacao Escalar: +1.87 km/s
 
-Flyby em Terra (Terra):
-  - V_infty: 0.009317 AU/dia
-  - Excentricidade: 1.039773
-  - Deflexao: 148.202973 graus
-  - Ganho V: 31.031049 km/s
+Impulso resultante da mudanca de direcao e velocidade
+    - Ganho (Delta V): 12.25 km/s
 
-Flyby em Jupiter (Jupiter):
-  - V_infty: 0.006699 AU/dia
-  - Excentricidade: 1.003080
-  - Deflexao: 171.017903 graus
-  - Ganho V: 23.126948 km/s
+Flyby no planeta Venus
+Encontro
+    - V_infinito_aproximacao: 9.46 km/s
+    - Excentricidade: 1.0579
+    - Deflexao ao redor planeta: 141.93 graus
+
+Velocidade Heliocentrica
+    - Velocidade Pre : 38.51 km/s
+    - Velocidade Pos:   43.77 km/s
+    - Variacao Escalar: +5.26 km/s
+
+Impulso resultante da mudanca de direcao e velocidade
+    - Ganho (Delta V): 17.89 km/s
+
+Flyby no planeta Terra
+Encontro
+    - V_infinito_aproximacao: 16.13 km/s
+    - Excentricidade: 1.0398
+    - Deflexao ao redor planeta: 148.20 graus
+
+Velocidade Heliocentrica
+    - Velocidade Pre : 37.28 km/s
+    - Velocidade Pos:   37.33 km/s
+    - Variacao Escalar: +0.05 km/s
+
+Impulso resultante da mudanca de direcao e velocidade
+    - Ganho (Delta V): 31.03 km/s
+
+Flyby no planeta Jupiter
+Encontro
+    - V_infinito_aproximacao: 11.60 km/s
+    - Excentricidade: 1.0031
+    - Deflexao ao redor planeta: 171.02 graus
+
+Velocidade Heliocentrica
+    - Velocidade Pre : 12.36 km/s
+    - Velocidade Pos:   13.55 km/s
+    - Variacao Escalar: +1.18 km/s
+
+Impulso resultante da mudanca de direcao e velocidade
+    - Ganho (Delta V): 23.13 km/s
 

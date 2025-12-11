@@ -206,32 +206,66 @@ plt.ylim(-4,6)
 plt.savefig("./Outputs/trajetoria_completa_cassini.png", dpi=300)
 plt.show()
 
-# Calculo Flybys
+# Calculo Flybys e Trechos
 ocorre_flyby = [('Venus1', 'Venus'), ('Venus2', 'Venus'), ('Terra', 'Terra'), ('Jupiter', 'Jupiter')]
 
 with open("./Outputs/resultados_flyby.txt", "w") as f:
-    f.write("Resultados dos Flybys:\n\n")
+    f.write("Resultados dos Flybys e seus trechos:\n\n")
 
 for flyby, planeta in ocorre_flyby:
     jd_flyby = eventos_jd[flyby]
 
+    # Índices fundamentais
     idx_flyby = (np.abs(jds - jd_flyby)).argmin()
-    ponto_cassini = dados_cassini[idx_flyby]
 
+    # Pega orbita antes e depois
+    offset_dias = 10
+    idx_pre = max(0, idx_flyby - offset_dias)
+    idx_pos = min(len(dados_cassini) - 1, idx_flyby + offset_dias)
+
+    # Dados dos pontos
+    ponto_flyby = dados_cassini[idx_flyby] # Encontro
+    ponto_pre = dados_cassini[idx_pre]     # Pre
+    ponto_pos = dados_cassini[idx_pos]     # Pos
+
+    # Flyby exato
     jds_planeta = np.array([d['jd'] for d in dados_planetas[planeta]])
     idx_p = (np.abs(jds_planeta - jd_flyby)).argmin()
     ponto_planeta = dados_planetas[planeta][idx_p]
 
-    orb_calc = Orbita()
-    orb_calc.vet_estado(mu_Sol, ponto_cassini['r'], ponto_cassini['v'])
+    orb_momento = Orbita()
+    orb_momento.vet_estado(mu_Sol, ponto_flyby['r'], ponto_flyby['v'])
 
-    r_p, v_inf, e_h, delta = orb_calc.flyby(ponto_planeta['r'], ponto_planeta['v'], mu_planetas[planeta])
-    ganho = orb_calc.ganho_flyby(v_inf, delta)
+    r_p, v_inf, e_h, delta = orb_momento.flyby(ponto_planeta['r'], ponto_planeta['v'], mu_planetas[planeta])
+    ganho = orb_momento.ganho_flyby(v_inf, delta)
     ganho_km = ganho * 1731.45683
 
+    orb_pre = Orbita()
+    orb_pre.vet_estado(mu_Sol, ponto_pre['r'], ponto_pre['v'])
+    vel_pre_km = np.linalg.norm(ponto_pre['v']) * 1731.45683
+
+    orb_pos = Orbita()
+    orb_pos.vet_estado(mu_Sol, ponto_pos['r'], ponto_pos['v'])
+    vel_pos_km = np.linalg.norm(ponto_pos['v']) * 1731.45683
+
+    diff_escalar = vel_pos_km - vel_pre_km
+
+    v_inf_km = v_inf * 1731.45683
+
     with open("./Outputs/resultados_flyby.txt", "a") as f:
-        f.write(f"Flyby em {planeta} ({flyby}):\n")
-        f.write(f"  - V_infty: {v_inf:.6f} AU/dia\n")
-        f.write(f"  - Excentricidade: {e_h:.6f}\n")
-        f.write(f"  - Deflexao: {delta:.6f} graus\n")
-        f.write(f"  - Ganho V: {ganho_km:.6f} km/s\n\n")
+        f.write(f"Flyby no planeta {planeta}\n")
+        f.write("Encontro\n")
+        f.write(f"    - V_infinito_aproximacao: {v_inf_km:.2f} km/s\n")
+        f.write(f"    - Excentricidade: {e_h:.4f}\n")
+        f.write(f"    - Deflexao ao redor planeta: {delta:.2f} graus\n")
+        f.write("\n")
+        # Calculada pra ver a mudanca de verdade
+        f.write("Velocidade Heliocentrica\n")
+        f.write(f"    - Velocidade Pre : {vel_pre_km:.2f} km/s\n")
+        f.write(f"    - Velocidade Pos:   {vel_pos_km:.2f} km/s\n")
+        f.write(f"    - Variacao Escalar: {diff_escalar:+.2f} km/s\n")
+        f.write("\n")
+        f.write("Impulso resultante da mudanca de direcao e velocidade\n")
+        f.write(f"    - Ganho (Delta V): {ganho_km:.2f} km/s\n")
+        f.write("\n")
+
