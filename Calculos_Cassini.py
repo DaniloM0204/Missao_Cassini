@@ -2,13 +2,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-mu_Sol = 0.0002959122
+mu_Sol = 0.0002959122 # UA^3/dia^2
 
 mu_planetas = {
-    'Venus': 0.0000024478383,
-    'Terra': 0.0000030034896,
-    'Jupiter': 0.0009547919,
-    'Saturno': 0.0002858850
+    'Venus': mu_Sol / 408523.7,
+    'Terra': mu_Sol / 332946.0,
+    'Jupiter': mu_Sol / 1047.3486,
+    'Saturno': mu_Sol / 3498.0
 }
 
 eventos_jd = {
@@ -104,6 +104,51 @@ def ler_horizons_completo(caminho_arquivo):
     except FileNotFoundError:
         return []
     return dados
+
+def intervalo_SOI(dados_cassini, dados_planeta_lista, mu_p, idx_c_centro, idx_p_centro):
+    """
+    Encontra entrada/saída da SOI sincronizando os índices da Cassini e do Planeta.
+    """
+    #Cálculo do Raio da SOI
+    massa_rel = mu_p / mu_Sol
+    r_planeta_sol = np.linalg.norm(dados_planeta_lista[idx_p_centro]['r'])
+    r_soi = r_planeta_sol * (massa_rel ** 0.4)
+    offset = idx_p_centro - idx_c_centro
+
+    n_c = len(dados_cassini)
+    n_p = len(dados_planeta_lista)
+
+    idx_pre = idx_c_centro
+    idx_pos = idx_c_centro
+
+    #Busca para Entrada
+    while idx_pre > 0:
+        idx_p_atual = idx_pre + offset
+        if idx_p_atual < 0 or idx_p_atual >= n_p:
+            break
+
+        dist = np.linalg.norm(dados_cassini[idx_pre]['r'] - dados_planeta_lista[idx_p_atual]['r'])
+        if dist > r_soi: # entrando na SOI
+            break
+        idx_pre -= 1
+
+    #Busca para Saída
+    while idx_pos < n_c - 1:
+        idx_p_atual = idx_pos + offset
+        if idx_p_atual < 0 or idx_p_atual >= n_p:
+            break
+
+        dist = np.linalg.norm(dados_cassini[idx_pos]['r'] - dados_planeta_lista[idx_p_atual]['r'])
+        if dist > r_soi: # Saiu da SOI
+            break
+        idx_pos += 1
+
+    if idx_pos - idx_pre < 4:
+        idx_pre = max(0, idx_c_centro - 2)
+        idx_pos = min(n_c - 1, idx_c_centro + 2)
+
+    return idx_pre, idx_pos, r_soi
+
 
 # Carregamento de dados
 arquivos_planetas = {'Venus': 'VetoresVenus.txt', 'Terra': 'VetoresTerra.txt', 'Jupiter': 'VetoresJupiter.txt', 'Saturno': 'VetoresSaturno.txt'}
@@ -210,62 +255,97 @@ plt.show()
 ocorre_flyby = [('Venus1', 'Venus'), ('Venus2', 'Venus'), ('Terra', 'Terra'), ('Jupiter', 'Jupiter')]
 
 with open("./Outputs/resultados_flyby.txt", "w") as f:
-    f.write("Resultados dos Flybys e seus trechos:\n\n")
+    f.write("Resultados Analiticos dos Flybys pela SOI:\n\n")
 
 for flyby, planeta in ocorre_flyby:
     jd_flyby = eventos_jd[flyby]
 
-    # Índices fundamentais
-    idx_flyby = (np.abs(jds - jd_flyby)).argmin()
+    idx_flyby_c = (np.abs(jds - jd_flyby)).argmin() # Índice Cassini
 
-    # Pega orbita antes e depois
-    offset_dias = 10
-    idx_pre = max(0, idx_flyby - offset_dias)
-    idx_pos = min(len(dados_cassini) - 1, idx_flyby + offset_dias)
+    jds_planeta_arr = np.array([d['jd'] for d in dados_planetas[planeta]])
+    idx_flyby_p = (np.abs(jds_planeta_arr - jd_flyby)).argmin() # Índice Planeta
 
-    # Dados dos pontos
-    ponto_flyby = dados_cassini[idx_flyby] # Encontro
-    ponto_pre = dados_cassini[idx_pre]     # Pre
-    ponto_pos = dados_cassini[idx_pos]     # Pos
+    idx_pre, idx_pos, raio_soi = intervalo_SOI(
+        dados_cassini,
+        dados_planetas[planeta],
+        mu_planetas[planeta],
+        idx_flyby_c,
+        idx_flyby_p
+    )
 
-    # Flyby exato
-    jds_planeta = np.array([d['jd'] for d in dados_planetas[planeta]])
-    idx_p = (np.abs(jds_planeta - jd_flyby)).argmin()
-    ponto_planeta = dados_planetas[planeta][idx_p]
+    #Extrai dados dos pontos de interesse
+    ponto_flyby = dados_cassini[idx_flyby_c] # Periastro
+    ponto_pre = dados_cassini[idx_pre]       # Entrada SOI
+    ponto_pos = dados_cassini[idx_pos]       # Saida SOI
 
+# Planetas nos momentos correspondentes
+    offset = idx_flyby_p - idx_flyby_c
+
+    # Índices alvo para o planeta
+    idx_p_pre_target = idx_pre + offset
+    idx_p_pos_target = idx_pos + offset
+
+    tam_dados_planeta = len(dados_planetas[planeta])
+
+    # Verifica o limite no pre
+    if idx_p_pre_target < 0:
+        idx_p_pre_target = 0
+        idx_pre = idx_p_pre_target - offset # Ajusta Cassini para o mesmo dia
+
+    # Verifica o limite no pos
+    if idx_p_pos_target >= tam_dados_planeta:
+        idx_p_pos_target = tam_dados_planeta - 1
+        idx_pos = idx_p_pos_target - offset # Ajusta Cassini para o mesmo dia
+
+    # Acessa os dados
+    ponto_planeta_exact = dados_planetas[planeta][idx_flyby_p]
+    ponto_planeta_pre   = dados_planetas[planeta][idx_p_pre_target]
+    ponto_planeta_pos   = dados_planetas[planeta][idx_p_pos_target]
+
+    # Atualiza os pontos da Cassini caso os índices tenham sido ajustados acima
+    ponto_pre = dados_cassini[idx_pre]
+    ponto_pos = dados_cassini[idx_pos]
+
+    # Calculo do Flyby teorico
     orb_momento = Orbita()
     orb_momento.vet_estado(mu_Sol, ponto_flyby['r'], ponto_flyby['v'])
+    r_p, v_inf, e_h, delta = orb_momento.flyby(ponto_planeta_exact['r'], ponto_planeta_exact['v'], mu_planetas[planeta])
 
-    r_p, v_inf, e_h, delta = orb_momento.flyby(ponto_planeta['r'], ponto_planeta['v'], mu_planetas[planeta])
     ganho = orb_momento.ganho_flyby(v_inf, delta)
     ganho_km = ganho * 1731.45683
-
-    orb_pre = Orbita()
-    orb_pre.vet_estado(mu_Sol, ponto_pre['r'], ponto_pre['v'])
-    vel_pre_km = np.linalg.norm(ponto_pre['v']) * 1731.45683
-
-    orb_pos = Orbita()
-    orb_pos.vet_estado(mu_Sol, ponto_pos['r'], ponto_pos['v'])
-    vel_pos_km = np.linalg.norm(ponto_pos['v']) * 1731.45683
-
-    diff_escalar = vel_pos_km - vel_pre_km
-
     v_inf_km = v_inf * 1731.45683
 
-    with open("./Outputs/resultados_flyby.txt", "a") as f:
-        f.write(f"Flyby no planeta {planeta}\n")
-        f.write("Encontro\n")
-        f.write(f"    - V_infinito_aproximacao: {v_inf_km:.2f} km/s\n")
-        f.write(f"    - Excentricidade: {e_h:.4f}\n")
-        f.write(f"    - Deflexao ao redor planeta: {delta:.2f} graus\n")
-        f.write("\n")
-        # Calculada pra ver a mudanca de verdade
-        f.write("Velocidade Heliocentrica\n")
-        f.write(f"    - Velocidade Pre : {vel_pre_km:.2f} km/s\n")
-        f.write(f"    - Velocidade Pos:   {vel_pos_km:.2f} km/s\n")
-        f.write(f"    - Variacao Escalar: {diff_escalar:+.2f} km/s\n")
-        f.write("\n")
-        f.write("Impulso resultante da mudanca de direcao e velocidade\n")
-        f.write(f"    - Ganho (Delta V): {ganho_km:.2f} km/s\n")
-        f.write("\n")
+    # Calculo do Flyby observado nas bordas da SOI
+    r_rel_pre = ponto_pre['r'] - ponto_planeta_pre['r']
 
+    v_rel_pre = ponto_pre['v'] - ponto_planeta_pre['v']
+    v_rel_pos = ponto_pos['v'] - ponto_planeta_pos['v']
+
+    mag_pre_km = np.linalg.norm(v_rel_pre) * 1731.45683
+    mag_pos_km = np.linalg.norm(v_rel_pos) * 1731.45683
+
+    # Excentricidade na SOI
+    orb_soi = Orbita()
+    orb_soi.vet_estado(mu_planetas[planeta], r_rel_pre, v_rel_pre)
+    e_observado = orb_soi.e
+
+    # Deflexão
+    cos_theta = np.dot(v_rel_pre, v_rel_pos) / (np.linalg.norm(v_rel_pre) * np.linalg.norm(v_rel_pos))
+    cos_theta = np.clip(cos_theta, -1.0, 1.0)
+    deflexao_observada = np.degrees(np.arccos(cos_theta))
+
+
+    with open("./Outputs/resultados_flyby.txt", "a") as f:
+        f.write(f"FLYBY: {flyby} ({planeta})\n")
+        f.write("\n")
+        f.write(" Flyby Teorico\n")
+        f.write(f"    - Excentricidade: {e_h:.4f}\n")
+        f.write(f"    - Deflexao Max:   {delta:.2f} graus\n")
+        f.write(f"    - Delta V:  {ganho_km:.2f} km/s\n")
+        f.write("\n")
+        f.write(" Flyby na SOI\n")
+        f.write(f"    - Excentricidade SOI: {e_observado:.4f}\n")
+        f.write(f"    - V_rel Entrada:  {mag_pre_km:.2f} km/s\n")
+        f.write(f"    - V_rel Saida:    {mag_pos_km:.2f} km/s\n")
+        f.write(f"    - Deflexao Real:  {deflexao_observada:.2f} graus\n")
+        f.write("\n")

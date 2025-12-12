@@ -1,58 +1,54 @@
-Resultados dos Flybys e seus trechos:
+Resultados Analiticos dos Flybys pela SOI:
 
-Flyby no planeta Venus
-Encontro
-    - V_infinito_aproximacao: 6.20 km/s
-    - Excentricidade: 1.0113
-    - Deflexao ao redor planeta: 162.84 graus
+FLYBY: Venus1 (Venus)
 
-Velocidade Heliocentrica
-    - Velocidade Pre : 38.61 km/s
-    - Velocidade Pos:   40.48 km/s
-    - Variacao Escalar: +1.87 km/s
+ Flyby Teorico
+    - Excentricidade: 39.2657
+    - Deflexao Max:   2.92 graus
+    - Delta V:  0.32 km/s
 
-Impulso resultante da mudanca de direcao e velocidade
-    - Ganho (Delta V): 12.25 km/s
+ Flyby na SOI
+    - Excentricidade SOI: 1.7120
+    - V_rel Entrada:  6.20 km/s
+    - V_rel Saida:    6.09 km/s
+    - Deflexao Real:  71.59 graus
 
-Flyby no planeta Venus
-Encontro
-    - V_infinito_aproximacao: 9.46 km/s
-    - Excentricidade: 1.0579
-    - Deflexao ao redor planeta: 141.93 graus
+FLYBY: Venus2 (Venus)
 
-Velocidade Heliocentrica
-    - Velocidade Pre : 38.51 km/s
-    - Velocidade Pos:   43.77 km/s
-    - Variacao Escalar: +5.26 km/s
+ Flyby Teorico
+    - Excentricidade: 196.5251
+    - Deflexao Max:   0.58 graus
+    - Delta V:  0.10 km/s
 
-Impulso resultante da mudanca de direcao e velocidade
-    - Ganho (Delta V): 17.89 km/s
+ Flyby na SOI
+    - Excentricidade SOI: 4.4033
+    - V_rel Entrada:  9.46 km/s
+    - V_rel Saida:    9.44 km/s
+    - Deflexao Real:  41.83 graus
 
-Flyby no planeta Terra
-Encontro
-    - V_infinito_aproximacao: 16.13 km/s
-    - Excentricidade: 1.0398
-    - Deflexao ao redor planeta: 148.20 graus
+FLYBY: Terra (Terra)
 
-Velocidade Heliocentrica
-    - Velocidade Pre : 37.28 km/s
-    - Velocidade Pos:   37.33 km/s
-    - Variacao Escalar: +0.05 km/s
+ Flyby Teorico
+    - Excentricidade: 135.4080
+    - Deflexao Max:   0.85 graus
+    - Delta V:  0.24 km/s
 
-Impulso resultante da mudanca de direcao e velocidade
-    - Ganho (Delta V): 31.03 km/s
+ Flyby na SOI
+    - Excentricidade SOI: 6.4981
+    - V_rel Entrada:  16.04 km/s
+    - V_rel Saida:    16.03 km/s
+    - Deflexao Real:  19.69 graus
 
-Flyby no planeta Jupiter
-Encontro
-    - V_infinito_aproximacao: 11.60 km/s
-    - Excentricidade: 1.0031
-    - Deflexao ao redor planeta: 171.02 graus
+FLYBY: Jupiter (Jupiter)
 
-Velocidade Heliocentrica
-    - Velocidade Pre : 12.36 km/s
-    - Velocidade Pos:   13.55 km/s
-    - Variacao Escalar: +1.18 km/s
+ Flyby Teorico
+    - Excentricidade: 11.4081
+    - Deflexao Max:   10.06 graus
+    - Delta V:  2.03 km/s
 
-Impulso resultante da mudanca de direcao e velocidade
-    - Ganho (Delta V): 23.13 km/s
+ Flyby na SOI
+    - Excentricidade SOI: 9.3956
+    - V_rel Entrada:  10.74 km/s
+    - V_rel Saida:    11.60 km/s
+    - Deflexao Real:  5.48 graus
 
